@@ -1,9 +1,66 @@
-# Fabric Example Mod
+# PolyConfig
+PolyConfig is a mod allowing you to configure [PolyMc](https://github.com/TheEpicBlock/PolyMc). 
+It uses [PolyMc's api](https://theepicblock.github.io/PolyMc/api/) internally.
+```css
+version 1
 
-## Setup
+// Just mentioning a block will fill in the defaults for it, effectively prioritizing it
+block "test:prioritized_block"
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+// Simple replacement
+block "test:test_block" {
+    replace "minecraft:glass"
+}
 
-## License
+// Simple replacement with a specific state
+block "test:test_block2" {
+    replace "minecraft:redstone_lamp" lit=true
+}
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+// Unless specified otherwise, properties from the modded block will be copied over into the vanilla block
+block "test:rope_ladder" {
+    replace "minecraft:ladder"
+}
+
+// Pick from a specific group. The first one entered will be tried first
+block "test:other_block" {
+    replace (group)"noteblocks"
+    replace (group)"string"
+}
+
+// You can filter that specific group
+block "test:some_other_block" {
+    replace (group)"leaves" waterlogged=false distance="5.."
+}
+
+block "test:some_kind_of_plant" {
+    // You can merge specific values to avoid generating a block for all of them. You can use the second argument to specify which one of these is the canonical one, which will be used to retrieve the resources.
+    merge "age" "0..2"
+    merge "age" "3.." 6
+    // You can use any regex for string type properties. * will also be recognized
+    merge "direction" "*"
+    // Eliding any "replace" statement will leave PolyMc to generate it
+}
+
+// You can specify different replace entries per source state.
+block "test:my_slab" {
+    state type="top|double" {
+        replace "minecraft:white_stained_glass"
+    }
+    state type="bottom" {
+        replace (group)"string"
+    }
+}
+
+// I guess you should also be able to configure items, it won't be needed for regular use, but it might be neat for 
+item "test:magic_sword" {
+    replacement "minecraft:diamond_sword" 
+    enchanted true 
+    rarity "uncommon" 
+    lore (Literal)"A very cool sword that makes explosions or smth like that"
+}
+
+item "test:combustable_powder" {
+    replacement (group)"fuels" // Items can also have groups, for those a random item out of the group will be picked
+}
+```

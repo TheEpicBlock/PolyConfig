@@ -1,29 +1,32 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "polyconfig",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "polyconfig",
+  "description": "Mod to conveniently access the PolyMc api via a config file",
   "authors": [
-    "Me!"
+    {
+      "name": "TheEpicBlock",
+      "contact": { "homepage": "https://theepicblock.nl" }
+    }
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/TheEpicBlock/PolyConfig/blob/master/README.md",
+    "sources": "https://github.com/TheEpicBlock/PolyConfig"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/polyconfig/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "nl.theepicblock.polyconfig.PolyConfig"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "polyconfig.mixins.json"
   ],
 
   "depends": {
