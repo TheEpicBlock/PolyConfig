@@ -1,6 +1,7 @@
 # PolyConfig
 PolyConfig is a mod allowing you to configure [PolyMc](https://github.com/TheEpicBlock/PolyMc). 
 It uses [PolyMc's api](https://theepicblock.github.io/PolyMc/api/) internally.
+
 ```css
 version 1
 
@@ -34,11 +35,11 @@ block "test:some_other_block" {
 }
 
 block "test:some_kind_of_plant" {
-    // You can merge specific values to avoid generating a block for all of them. You can use the second argument to specify which one of these is the canonical one, which will be used to retrieve the resources.
-    merge "age" "0..2"
-    merge "age" "3.." 6
+    // You can merge specific values to avoid generating a block for all of them. You can use the argument to specify which one of these is the canonical one, which will be used to retrieve the resources.
+    merge age="0..2"
+    merge age="3.." 6
     // You can use any regex for string type properties. * will also be recognized
-    merge "direction" "*"
+    merge direction="*"
     // Eliding any "replace" statement will leave PolyMc to generate it
 }
 

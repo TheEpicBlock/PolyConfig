@@ -21,13 +21,10 @@
 
   "environment": "*",
   "entrypoints": {
-    "main": [
+    "polymc": [
       "nl.theepicblock.polyconfig.PolyConfig"
     ]
   },
-  "mixins": [
-    "polyconfig.mixins.json"
-  ],
 
   "depends": {
     "fabricloader": ">=0.14.6",
