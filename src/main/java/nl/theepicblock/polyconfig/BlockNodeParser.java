@@ -78,7 +78,6 @@ public class BlockNodeParser {
 
         return state -> {
             if (propertyWithFilter.testState(state)) {
-                System.out.println("Le merge Has ACTIVE");
                 return uncheckedWith(state, propertyWithFilter.property(), canonicalValue);
             } else {
                 return state;
