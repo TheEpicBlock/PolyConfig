@@ -31,7 +31,7 @@ public class BlockNodeParser {
 
         var mergeNodes = KDLUtil.getChildren(node)
                 .stream()
-                .filter(n -> n.getIdentifier().equals("match"))
+                .filter(n -> n.getIdentifier().equals("merge"))
                 .toList();
         BlockStateMerger merger;
         if (mergeNodes.isEmpty()) {
@@ -39,7 +39,7 @@ public class BlockNodeParser {
         } else {
             merger = a -> a; // Do nothing by default
             for (var mergeNode : mergeNodes) {
-                merger.combine(getMergerFromNode(mergeNode, moddedBlock));
+                merger = merger.combine(getMergerFromNode(mergeNode, moddedBlock));
             }
         }
 
@@ -55,8 +55,6 @@ public class BlockNodeParser {
         // The merge node will specify a property and a range of values for that property.
         // It can also optionally specify an argument which contains the desired canonical value for that property.
 
-
-
         if (mergeNode.getProps().size() != 1) throw wrongAmountOfPropertiesForMergeNode(mergeNode.getProps().size());
         // The property declaration will be something like `age="1..4"`
         var propDeclaration = mergeNode.getProps().entrySet().stream().findFirst().get();
@@ -64,7 +62,6 @@ public class BlockNodeParser {
         var valueRange = propDeclaration.getValue();
 
         var propertyWithFilter = PropertyFilter.get(propertyName, valueRange, block);
-
 
         // Parse the canonical value
         if (mergeNode.getArgs().size() > 1) throw wrongAmountOfArgsForMergeNode(mergeNode.getArgs().size());
@@ -81,6 +78,7 @@ public class BlockNodeParser {
 
         return state -> {
             if (propertyWithFilter.testState(state)) {
+                System.out.println("Le merge Has ACTIVE");
                 return uncheckedWith(state, propertyWithFilter.property(), canonicalValue);
             } else {
                 return state;

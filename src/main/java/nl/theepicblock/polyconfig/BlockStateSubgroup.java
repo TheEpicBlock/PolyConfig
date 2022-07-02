@@ -43,7 +43,7 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
             }
         }
 
-        PolyConfig.LOGGER.info("(polyconfig) couldn't find any blocks for "+input+", we probably ran out of states");
+        PolyConfig.LOGGER.info("(polyconfig) couldn't allocate any blocks for "+input+", we probably ran out of states");
         isUniqueCallback.set(false);
         return Blocks.STONE.getDefaultState();
     }
@@ -66,9 +66,9 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
 
         for (var child : KDLUtil.getChildren(node)) {
             switch (child.getIdentifier()) {
-                case "merge" -> { if (isRoot) { throw invalidMerge(child); } }
+                case "merge" -> { if (!isRoot) { throw invalidMerge(child); } }
                 case "state" -> children.add(parseNode(child, moddedBlock, false));
-                case "replace" -> replaceEntries.add(parseReplaceNode(node));
+                case "replace" -> replaceEntries.add(parseReplaceNode(child));
                 default -> throw unknownNode(child);
             }
         }

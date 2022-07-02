@@ -50,7 +50,7 @@ public interface PropertyFilter<T extends Comparable<T>> extends Predicate<T> {
                 if (rightInt < leftInt) throw new ConfigFormatException("Right value is bigger than left value in range "+string);
 
                 if (property instanceof IntProperty intProperty) {
-                    return new PropertyWithFilter<>(intProperty, v -> v > leftInt && v < rightInt);
+                    return new PropertyWithFilter<>(intProperty, v -> v >= leftInt && v <= rightInt);
                 }
             } else if (string.equals("*")) {
                 return new PropertyWithFilter<>(property, block -> true);

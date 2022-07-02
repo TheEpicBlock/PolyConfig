@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class PolyConfig implements PolyMcEntrypoint {
 	private static final int CURRENT_VERSION = 1;
@@ -48,12 +49,9 @@ public class PolyConfig implements PolyMcEntrypoint {
 						default -> throw unknownNode(node);
 					}
 				} catch (ConfigFormatException e) {
-					LOGGER.warn("(polyconfig) "+e.getMessage());
-					for (var helpMessage : e.helpMessages) {
-						LOGGER.warn("help: {}", helpMessage);
-					}
-					LOGGER.warn("help: the offending node looked something like this (formatting may differ)");
-					LOGGER.warn(node.toKDL().replace("\n", "\n    | "));
+					LOGGER.warn("(polyconfig) "+e.getMessage()
+							+e.helpMessages.stream().map(message -> "\nhelp: "+message).collect(Collectors.joining())
+							+"\nhelp: the offending node looked something like this (formatting may differ)\n    | "+node.toKDL().replace("\n", "\n    | "));
 				}
 			}
 
@@ -72,10 +70,8 @@ public class PolyConfig implements PolyMcEntrypoint {
 		} catch (KDLParseException e) {
 			LOGGER.error("(polyconfig) Invalid config file", e);
 		} catch (ConfigFormatException e) {
-			LOGGER.error("(polyconfig) "+e.getMessage());
-			for (var helpMessage : e.helpMessages) {
-				LOGGER.error("help: {}", helpMessage);
-			}
+			LOGGER.error("(polyconfig) "+e.getMessage()
+					+e.helpMessages.stream().map(message -> "\nhelp: "+message).collect(Collectors.joining()));
 		}
 	}
 
@@ -86,7 +82,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 	private static InputStream readConfigFile() throws IOException {
 		var path = FabricLoader.getInstance().getConfigDir().resolve("polyconfig.kdl");
 		if (!Files.exists(path)) {
-			Files.copy(PolyConfig.class.getResourceAsStream("defaultconfig.kdl"), path);
+			Files.copy(FabricLoader.getInstance().getModContainer("polyconfig").orElseThrow().findPath("defaultconfig.kdl").orElseThrow(), path);
 		}
 		return new FileInputStream(path.toFile());
 	}

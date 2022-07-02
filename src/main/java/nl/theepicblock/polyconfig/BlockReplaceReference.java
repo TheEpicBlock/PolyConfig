@@ -43,6 +43,7 @@ public interface BlockReplaceReference {
                 state = with(state, value);
             }
 
+            isUniqueCallback.set(false);
             return state;
         }
 
