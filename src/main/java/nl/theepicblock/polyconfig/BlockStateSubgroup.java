@@ -2,8 +2,13 @@ package nl.theepicblock.polyconfig;
 
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLValue;
+import io.github.theepicblock.polymc.api.PolyRegistry;
+import io.github.theepicblock.polymc.api.block.BlockStateManager;
+import io.github.theepicblock.polymc.impl.generator.BlockPolyGenerator;
+import io.github.theepicblock.polymc.impl.misc.BooleanContainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -16,6 +21,33 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSubgroup> children, List<BlockReplaceReference> replaces) {
+    /**
+     * Allocates the right clientside blockstate for the modded input blockstate according to the rules defined in here.
+     */
+    public BlockState grabBlockState(BlockState input, BooleanContainer isUniqueCallback, BlockStateManager stateManager) {
+        for (var child : this.children) {
+            if (child.filter.test(input)) {
+                return child.grabBlockState(input, isUniqueCallback, stateManager);
+            }
+        }
+
+        if (this.replaces.isEmpty()) {
+            // Let PolyMc figure it out automagically
+            return BlockPolyGenerator.registerClientState(input, isUniqueCallback, stateManager);
+        }
+
+        for (var replaceStatement : this.replaces) {
+            var result = replaceStatement.tryAllocate(input, isUniqueCallback, stateManager);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        PolyConfig.LOGGER.info("(polyconfig) couldn't find any blocks for "+input+", we probably ran out of states");
+        isUniqueCallback.set(false);
+        return Blocks.STONE.getDefaultState();
+    }
+
     public static BlockStateSubgroup parseNode(KDLNode node, Block moddedBlock, boolean isRoot) throws ConfigFormatException {
         Predicate<BlockState> filter;
         if (isRoot) {
@@ -68,6 +100,8 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
 
             return new BlockReplaceReference.BlockReference(block, forcedValues);
         } else if (replacementArgType.equals("group")) {
+            // TODO support property filters on these
+            if (!node.getProps().isEmpty()) throw new ConfigFormatException("Filtering block groups is not yet supported");
             return new BlockReplaceReference.BlockGroupReference(
                     Arrays.stream(BlockGroup.values())
                             .filter(group -> group.name.equals(replacementArgAsString))

@@ -5,6 +5,8 @@ import dev.hbeck.kdl.parse.KDLParseException;
 import dev.hbeck.kdl.parse.KDLParser;
 import io.github.theepicblock.polymc.api.PolyMcEntrypoint;
 import io.github.theepicblock.polymc.api.PolyRegistry;
+import io.github.theepicblock.polymc.api.block.BlockStateManager;
+import io.github.theepicblock.polymc.impl.poly.block.FunctionBlockStatePoly;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -34,14 +36,14 @@ public class PolyConfig implements PolyMcEntrypoint {
 			var version = versionNode.getArgs().get(0).getAsNumber().orElseThrow();
 			if (version.getValue().intValue() != CURRENT_VERSION) throw unsupportedVersion(version.getValue());
 
-			var blockDeclarations = new HashMap<Identifier, Object>();
+			var blockDeclarations = new HashMap<Identifier, BlockNodeParser.BlockEntry>();
 			// Loop through config nodes
 			for (var node : config.getNodes()) {
 				// These errors are only warnings, so we wrap this in another try block
 				try {
 					switch (node.getIdentifier()) {
 						case "version" -> {}
-						case "block" -> parseBlockNode(node);
+						case "block" -> BlockNodeParser.parseBlockNode(node, blockDeclarations);
 						case "item" -> handleItemNode(node);
 						default -> throw unknownNode(node);
 					}
@@ -55,6 +57,16 @@ public class PolyConfig implements PolyMcEntrypoint {
 				}
 			}
 
+			// Apply block nodes to PolyMc
+			blockDeclarations.forEach((identifier, blockEntry) -> {
+				registry.registerBlockPoly(
+						blockEntry.moddedBlock(),
+						new FunctionBlockStatePoly(
+								blockEntry.moddedBlock(),
+								(state, isUniqueCallback) -> blockEntry.rootNode().grabBlockState(state, isUniqueCallback, registry.getSharedValues(BlockStateManager.KEY)),
+								blockEntry.merger()));
+			});
+
 		} catch (IOException e) {
 			LOGGER.error("(polyconfig) Couldn't read config", e);
 		} catch (KDLParseException e) {
@@ -65,10 +77,6 @@ public class PolyConfig implements PolyMcEntrypoint {
 				LOGGER.error("help: {}", helpMessage);
 			}
 		}
-	}
-
-	private static void parseBlockNode(KDLNode node) {
-
 	}
 
 	private static void handleItemNode(KDLNode node) {

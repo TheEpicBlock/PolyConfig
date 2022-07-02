@@ -17,7 +17,7 @@ public class BlockNodeParser {
      * Interprets a block node
      * @param resultMap the map in which the result will be added.
      */
-    static void parseBlockNode(KDLNode node, Map<Identifier, Object> resultMap) throws ConfigFormatException {
+    static void parseBlockNode(KDLNode node, Map<Identifier, BlockEntry> resultMap) throws ConfigFormatException {
         var args = node.getArgs();
         if (args.size() != 1) throw wrongAmountOfArgsForBlockNode(args.size());
         if (!node.getProps().isEmpty()) throw new ConfigFormatException("Block nodes should not have any properties").withHelp("try removing any x=.. attached to the block node");
@@ -44,10 +44,11 @@ public class BlockNodeParser {
         }
 
         // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
-
+        var rootNode = BlockStateSubgroup.parseNode(node, moddedBlock, true);
+        resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode));
     }
 
-    record BlockEntry(HashMap<BlockState, Supplier<BlockState>> stateMap) {}
+    record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode) {}
 
     private static BlockStateMerger getMergerFromNode(KDLNode mergeNode, Block block) throws ConfigFormatException {
         // A blockstate merger will merge the input blockstate to a canonical version.

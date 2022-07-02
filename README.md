@@ -29,7 +29,7 @@ block "test:other_block" {
     replace (group)"tripwire"
 }
 
-// You can filter that specific group
+// You can filter that specific group (TODO)
 block "test:some_other_block" {
     replace (group)"leaves" waterlogged=false distance="5.."
 }
@@ -53,7 +53,7 @@ block "test:my_slab" {
     }
 }
 
-// I guess you should also be able to configure items, it won't be needed for regular use, but it might be neat for 
+// You can also configure items, if you need to
 item "test:magic_sword" {
     replacement "minecraft:diamond_sword" 
     enchanted true 
