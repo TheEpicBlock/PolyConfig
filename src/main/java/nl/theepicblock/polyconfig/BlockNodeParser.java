@@ -20,6 +20,7 @@ public class BlockNodeParser {
     static void parseBlockNode(KDLNode node, Map<Identifier, Object> resultMap) throws ConfigFormatException {
         var args = node.getArgs();
         if (args.size() != 1) throw wrongAmountOfArgsForBlockNode(args.size());
+        if (!node.getProps().isEmpty()) throw new ConfigFormatException("Block nodes should not have any properties").withHelp("try removing any x=.. attached to the block node");
 
         var moddedIdString = args.get(0).getAsString().getValue();
         var moddedId = Identifier.tryParse(moddedIdString);
@@ -42,9 +43,8 @@ public class BlockNodeParser {
             }
         }
 
-        for (var state : moddedBlock.getStateManager().getStates()) {
+        // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
 
-        }
     }
 
     record BlockEntry(HashMap<BlockState, Supplier<BlockState>> stateMap) {}
@@ -118,11 +118,11 @@ public class BlockNodeParser {
                 .withHelp("Try looking at the examples in the README");
     }
 
-    private static ConfigFormatException invalidId(String id) {
+    static ConfigFormatException invalidId(String id) {
         return new ConfigFormatException("Invalid identifier "+id);
     }
 
-    private static ConfigFormatException invalidBlock(Identifier id) {
+    static ConfigFormatException invalidBlock(Identifier id) {
         return new ConfigFormatException("Couldn't find any block matching "+id)
                 .withHelp("Try checking the spelling");
     }

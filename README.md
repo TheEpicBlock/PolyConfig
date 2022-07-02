@@ -25,8 +25,8 @@ block "test:rope_ladder" {
 
 // Pick from a specific group. The first one entered will be tried first
 block "test:other_block" {
-    replace (group)"noteblocks"
-    replace (group)"string"
+    replace (group)"noteblock"
+    replace (group)"tripwire"
 }
 
 // You can filter that specific group
@@ -49,7 +49,7 @@ block "test:my_slab" {
         replace "minecraft:white_stained_glass"
     }
     state type="bottom" {
-        replace (group)"string"
+        replace (group)"tripwire"
     }
 }
 
