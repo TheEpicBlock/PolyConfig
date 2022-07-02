@@ -1,13 +1,12 @@
-name: build
+name: release
 
 on:
-  push:
-    paths-ignore:
-      - 'README.md'
-  pull_request:
+  release:
+    types:
+      - published
 
 jobs:
-  build:
+  github-release:
     runs-on: ubuntu-latest
     steps:
       - name: Cache
@@ -24,19 +23,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Validate gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
       - name: Setup JDK 17
         uses: actions/setup-java@v1
         with:
           java-version: 17
 
       - name: Ensure gradlew is executable
-        run: chmod +x ./gradlew
+        run: chmod +x gradlew
 
-      - name: Validate the gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: Build
+      - name: Build mod
         run: ./gradlew build
+
+      - name: Upload GitHub release
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'build/libs/*.jar;!build/libs/*-sources.jar;!build/libs/*-dev.jar'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
