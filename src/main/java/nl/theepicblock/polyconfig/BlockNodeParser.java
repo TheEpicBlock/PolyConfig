@@ -8,9 +8,9 @@ import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class BlockNodeParser {
     /**
@@ -23,29 +23,44 @@ public class BlockNodeParser {
         if (!node.getProps().isEmpty()) throw new ConfigFormatException("Block nodes should not have any properties").withHelp("try removing any x=.. attached to the block node");
 
         var moddedIdString = args.get(0).getAsString().getValue();
-        var moddedId = Identifier.tryParse(moddedIdString);
-        if (moddedId == null) throw invalidId(moddedIdString);
-        if (resultMap.containsKey(moddedId)) throw duplicateEntry(moddedId);
-
-        var moddedBlock = Registry.BLOCK.getOrEmpty(moddedId).orElseThrow(() -> invalidBlock(moddedId));
-
-        var mergeNodes = KDLUtil.getChildren(node)
-                .stream()
-                .filter(n -> n.getIdentifier().equals("merge"))
-                .toList();
-        BlockStateMerger merger;
-        if (mergeNodes.isEmpty()) {
-            merger = BlockStateMerger.DEFAULT;
-        } else {
-            merger = a -> a; // Do nothing by default
-            for (var mergeNode : mergeNodes) {
-                merger = merger.combine(getMergerFromNode(mergeNode, moddedBlock));
+        var possibleId = Identifier.tryParse(moddedIdString);
+        var ids = new ArrayList<Identifier>();
+        if (possibleId == null) {
+            var predicate = Pattern.compile(moddedIdString).asMatchPredicate();
+            for (var id : Registry.BLOCK.getIds()) {
+                if (predicate.test(id.toString())) {
+                    ids.add(id);
+                }
             }
+        } else {
+            ids.add(possibleId);
         }
 
-        // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
-        var rootNode = BlockStateSubgroup.parseNode(node, moddedBlock, true);
-        resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode));
+        for (var moddedId : ids) {
+            if (resultMap.containsKey(moddedId)) {
+                PolyConfig.LOGGER.warn("Entry '" + moddedId + "' is already defined! Overriding...");
+            }
+
+            var moddedBlock = Registry.BLOCK.getOrEmpty(moddedId).orElseThrow(() -> invalidBlock(moddedId));
+
+            var mergeNodes = KDLUtil.getChildren(node)
+                    .stream()
+                    .filter(n -> n.getIdentifier().equals("merge"))
+                    .toList();
+            BlockStateMerger merger;
+            if (mergeNodes.isEmpty()) {
+                merger = BlockStateMerger.DEFAULT;
+            } else {
+                merger = a -> a; // Do nothing by default
+                for (var mergeNode : mergeNodes) {
+                    merger = merger.combine(getMergerFromNode(mergeNode, moddedBlock));
+                }
+            }
+
+            // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
+            var rootNode = BlockStateSubgroup.parseNode(node, moddedBlock, true);
+            resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode));
+        }
     }
 
     record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode) {}
