@@ -49,9 +49,9 @@ public class PolyConfig implements PolyMcEntrypoint {
 						default -> throw unknownNode(node);
 					}
 				} catch (ConfigFormatException e) {
-					LOGGER.warn("(polyconfig) "+e.getMessage()
-							+e.helpMessages.stream().map(message -> "\nhelp: "+message).collect(Collectors.joining())
-							+"\nhelp: the offending node looked something like this (formatting may differ)\n    | "+node.toKDL().replace("\n", "\n    | "));
+					LOGGER.warn("(polyconfig) "+
+							e.withHelp("the offending node looked something like this (formatting may differ)\n    | "+node.toKDL().replace("\n", "\n    | "))
+								.toString());
 				}
 			}
 
@@ -70,8 +70,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 		} catch (KDLParseException e) {
 			LOGGER.error("(polyconfig) Invalid config file", e);
 		} catch (ConfigFormatException e) {
-			LOGGER.error("(polyconfig) "+e.getMessage()
-					+e.helpMessages.stream().map(message -> "\nhelp: "+message).collect(Collectors.joining()));
+			LOGGER.error("(polyconfig) "+e);
 		}
 	}
 

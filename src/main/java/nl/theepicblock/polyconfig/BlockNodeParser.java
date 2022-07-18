@@ -23,47 +23,70 @@ public class BlockNodeParser {
         if (!node.getProps().isEmpty()) throw new ConfigFormatException("Block nodes should not have any properties").withHelp("try removing any x=.. attached to the block node");
 
         var moddedIdString = args.get(0).getAsString().getValue();
+        // Try to parse it as a regular id, otherwise consider it a regex
         var possibleId = Identifier.tryParse(moddedIdString);
-        var ids = new ArrayList<Identifier>();
         if (possibleId == null) {
             var predicate = Pattern.compile(moddedIdString).asMatchPredicate();
+            var count = 0;
             for (var id : Registry.BLOCK.getIds()) {
+                var exceptions = new ArrayList<ConfigFormatException>();
                 if (predicate.test(id.toString())) {
-                    ids.add(id);
+                    count++;
+                    if (!resultMap.containsKey(id)) {
+                        try {
+                            processBlock(id, Registry.BLOCK.get(id), node, resultMap, true);
+                        } catch (ConfigFormatException e) {
+                            exceptions.add(e);
+                        }
+                    }
                 }
+
+                if (!exceptions.isEmpty()) {
+                    if (exceptions.size() == 1) {
+                        throw exceptions.get(0);
+                    } else {
+                        throw new ConfigFormatException("Warning: regex caused multiple errors with multiple blocks").withSubExceptions(exceptions);
+                    }
+                }
+            }
+            if (count == 0) {
+                PolyConfig.LOGGER.warn("The regex "+moddedIdString+" didn't match any blocks!");
             }
         } else {
-            ids.add(possibleId);
-        }
-
-        for (var moddedId : ids) {
-            if (resultMap.containsKey(moddedId)) {
-                PolyConfig.LOGGER.warn("Entry '" + moddedId + "' is already defined! Overriding...");
-            }
-
-            var moddedBlock = Registry.BLOCK.getOrEmpty(moddedId).orElseThrow(() -> invalidBlock(moddedId));
-
-            var mergeNodes = KDLUtil.getChildren(node)
-                    .stream()
-                    .filter(n -> n.getIdentifier().equals("merge"))
-                    .toList();
-            BlockStateMerger merger;
-            if (mergeNodes.isEmpty()) {
-                merger = BlockStateMerger.DEFAULT;
-            } else {
-                merger = a -> a; // Do nothing by default
-                for (var mergeNode : mergeNodes) {
-                    merger = merger.combine(getMergerFromNode(mergeNode, moddedBlock));
+            var moddedBlock = Registry.BLOCK.getOrEmpty(possibleId).orElseThrow(() -> invalidBlock(possibleId));
+            if (resultMap.containsKey(possibleId)) {
+                if (resultMap.get(possibleId).regex()) {
+                    // Silently override
+                    processBlock(possibleId, moddedBlock, node, resultMap, false);
+                } else {
+                    // If there were two explicit declaration, just crash
+                    throw duplicateEntry(possibleId);
                 }
             }
-
-            // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
-            var rootNode = BlockStateSubgroup.parseNode(node, moddedBlock, true);
-            resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode));
         }
     }
 
-    record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode) {}
+    static void processBlock(Identifier moddedId, Block moddedBlock, KDLNode node, Map<Identifier, BlockEntry> resultMap, boolean regex) throws ConfigFormatException {
+        var mergeNodes = KDLUtil.getChildren(node)
+                .stream()
+                .filter(n -> n.getIdentifier().equals("merge"))
+                .toList();
+        BlockStateMerger merger;
+        if (mergeNodes.isEmpty()) {
+            merger = BlockStateMerger.DEFAULT;
+        } else {
+            merger = a -> a; // Do nothing by default
+            for (var mergeNode : mergeNodes) {
+                merger = merger.combine(getMergerFromNode(mergeNode, moddedBlock));
+            }
+        }
+
+        // The `block` node can have nested `state` children. So we're going to parse it into a tree of BlockStateSubgroup's, with the `block` node being the root
+        var rootNode = BlockStateSubgroup.parseNode(node, moddedBlock, true);
+        resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode, regex));
+    }
+
+    record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode, boolean regex) {}
 
     private static BlockStateMerger getMergerFromNode(KDLNode mergeNode, Block block) throws ConfigFormatException {
         // A blockstate merger will merge the input blockstate to a canonical version.

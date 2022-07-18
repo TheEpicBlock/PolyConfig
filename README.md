@@ -29,6 +29,12 @@ block "test:other_block" {
     replace (group)"tripwire"
 }
 
+// You can match blocks with a regex
+// Blocks that are explicitely declared will always override those declared with a regex
+block "test:(other_)?block" {
+    replace "stone"
+}
+
 // You can filter that specific group (TODO)
 block "test:some_other_block" {
     replace (group)"leaves" waterlogged=false distance="5.."

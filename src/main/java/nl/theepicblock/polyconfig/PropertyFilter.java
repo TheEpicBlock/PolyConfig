@@ -69,6 +69,6 @@ public interface PropertyFilter<T extends Comparable<T>> extends Predicate<T> {
     }
 
     static ConfigFormatException propertyNotFound(String name, Block block) {
-        return new ConfigFormatException(block.getTranslationKey()+" does not have the property "+name);
+        return new ConfigFormatException(block.getTranslationKey()+" does not have the property '"+name+"'");
     }
 }
