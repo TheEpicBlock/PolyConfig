@@ -2,7 +2,7 @@
 PolyConfig is a mod allowing you to configure [PolyMc](https://github.com/TheEpicBlock/PolyMc). 
 It uses [PolyMc's api](https://theepicblock.github.io/PolyMc/api/) internally.
 
-```css
+```groovy
 version 1
 
 // Just mentioning a block will fill in the defaults for it, effectively prioritizing it
@@ -75,7 +75,7 @@ item "test:magic_sword" {
     replacement "minecraft:diamond_sword" 
     enchanted true 
     rarity "uncommon" 
-    lore (Literal)"A very cool sword that makes explosions or smth like that"
+    lore (literal)"A very cool sword that makes explosions or smth like that"
 }
 
 item "test:combustable_powder" {
