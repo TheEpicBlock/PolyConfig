@@ -1,8 +1,6 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.block;
 
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.objects.KDLValue;
-import io.github.theepicblock.polymc.api.PolyRegistry;
 import io.github.theepicblock.polymc.api.block.BlockStateManager;
 import io.github.theepicblock.polymc.impl.generator.BlockPolyGenerator;
 import io.github.theepicblock.polymc.impl.misc.BooleanContainer;
@@ -12,11 +10,12 @@ import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import nl.theepicblock.polyconfig.PolyConfig;
+import nl.theepicblock.polyconfig.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -64,7 +63,7 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
         var children = new ArrayList<BlockStateSubgroup>();
         var replaceEntries = new ArrayList<BlockReplaceReference>();
 
-        for (var child : KDLUtil.getChildren(node)) {
+        for (var child : Utils.getChildren(node)) {
             switch (child.getIdentifier()) {
                 case "merge" -> { if (!isRoot) { throw invalidMerge(child); } }
                 case "state" -> children.add(parseNode(child, moddedBlock, false));
@@ -86,7 +85,7 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
         if (replacementArgType.equals("state")) {
             var id = Identifier.tryParse(replacementArgAsString);
             if (id == null) throw BlockNodeParser.invalidId(replacementArgAsString);
-            var block = Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> BlockNodeParser.invalidBlock(id));
+            var block = Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> Utils.notFoundInRegistry(id, "block"));
             var forcedValues = new ArrayList<Property.Value<?>>();
 
             for (var entry : node.getProps().entrySet()) {

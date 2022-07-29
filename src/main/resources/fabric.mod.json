@@ -25,10 +25,13 @@
       "nl.theepicblock.polyconfig.PolyConfig"
     ]
   },
+  "mixins": [
+    "polyconfig.mixins.json"
+  ],
 
   "depends": {
     "fabricloader": ">=0.14.6",
     "java": ">=17",
-    "polymc": ">=5.0.0"
+    "polymc": ">=5.2.0"
   }
 }

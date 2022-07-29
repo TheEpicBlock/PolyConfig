@@ -6,37 +6,44 @@ import dev.hbeck.kdl.parse.KDLParser;
 import io.github.theepicblock.polymc.api.PolyMcEntrypoint;
 import io.github.theepicblock.polymc.api.PolyRegistry;
 import io.github.theepicblock.polymc.api.block.BlockStateManager;
-import io.github.theepicblock.polymc.impl.poly.block.FunctionBlockStatePoly;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
+import nl.theepicblock.polyconfig.block.BlockNodeParser;
+import nl.theepicblock.polyconfig.block.ConfigFormatException;
+import nl.theepicblock.polyconfig.block.CustomBlockPoly;
+import nl.theepicblock.polyconfig.entity.CustomEntityWizard;
+import nl.theepicblock.polyconfig.entity.EntityNodeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class PolyConfig implements PolyMcEntrypoint {
 	private static final int CURRENT_VERSION = 1;
 	public static final Logger LOGGER = LoggerFactory.getLogger("polyconfig");
 
+	/**
+	 * A temporary record that holds the parsed nodes before they're applied
+	 */
+	public record Declarations(Map<Identifier, BlockNodeParser.BlockEntry> blockDeclarations, Map<Identifier, EntityNodeParser.EntityEntry> entityDeclarations) {}
+
 	@Override
 	public void registerPolys(PolyRegistry registry) {
 		var parser = new KDLParser();
-		var blockDeclarations = new HashMap<Identifier, BlockNodeParser.BlockEntry>();
+		var declarations = new Declarations(new HashMap<>(), new HashMap<>());
 		var configdir = FabricLoader.getInstance().getConfigDir();
 
 		var oldLocation = configdir.resolve("polyconfig.kdl").toFile();
 		var polyconfigdir = configdir.resolve("polyconfig");
 		if (oldLocation.exists()) {
 			// Still uses the old location, respect that
-			handleFile(oldLocation, parser, blockDeclarations);
+			handleFile(oldLocation, parser, declarations);
 		} else {
 			// Try see if there's a file at the new location, if not we should create a directory
 			if (!polyconfigdir.toFile().exists()) {
@@ -52,7 +59,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 		try {
 			if (Files.exists(polyconfigdir)) {
 				Files.walk(polyconfigdir, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS).forEachOrdered(path -> {
-					handleFile(path.toFile(), parser, blockDeclarations);
+					handleFile(path.toFile(), parser, declarations);
 				});
 			}
 		} catch (IOException e) {
@@ -60,17 +67,22 @@ public class PolyConfig implements PolyMcEntrypoint {
 		}
 
 		// Apply block nodes to PolyMc
-		blockDeclarations.forEach((identifier, blockEntry) -> {
+		declarations.blockDeclarations().forEach((identifier, blockEntry) -> {
 			registry.registerBlockPoly(
 					blockEntry.moddedBlock(),
-					new FunctionBlockStatePoly(
+					new CustomBlockPoly(
 							blockEntry.moddedBlock(),
 							(state, isUniqueCallback) -> blockEntry.rootNode().grabBlockState(state, isUniqueCallback, registry.getSharedValues(BlockStateManager.KEY)),
 							blockEntry.merger()));
 		});
+
+		// Apply entity nodes
+		declarations.entityDeclarations().forEach((identifier, entityEntry) -> {
+			registry.registerEntityPoly(entityEntry.base(), (info, entity) -> new CustomEntityWizard<>(info, entity, entityEntry.base(), entityEntry.name()));
+		});
 	}
 
-	private static void handleFile(File configFile, KDLParser parser, Map<Identifier, BlockNodeParser.BlockEntry> blockDeclarations) {
+	private static void handleFile(File configFile, KDLParser parser, Declarations declarations) {
 		var path = FabricLoader.getInstance().getConfigDir().relativize(configFile.toPath());
 		try (var stream = new FileInputStream(configFile)) {
 			var config = parser.parse(stream);
@@ -89,10 +101,10 @@ public class PolyConfig implements PolyMcEntrypoint {
 				// These errors are only warnings, so we wrap this in another try block
 				try {
 					switch (node.getIdentifier()) {
-						case "version" -> {
-						}
-						case "block" -> BlockNodeParser.parseBlockNode(node, blockDeclarations);
+						case "version" -> {}
+						case "block" -> BlockNodeParser.parseBlockNode(node, declarations.blockDeclarations);
 						case "item" -> handleItemNode(node);
+						case "entity" -> EntityNodeParser.parseEntityNode(node, declarations.entityDeclarations);
 						default -> throw unknownNode(node);
 					}
 				} catch (ConfigFormatException e) {
@@ -113,14 +125,6 @@ public class PolyConfig implements PolyMcEntrypoint {
 
 	private static void handleItemNode(KDLNode node) {
 
-	}
-
-	private static InputStream readConfigFile() throws IOException {
-		var path = FabricLoader.getInstance().getConfigDir().resolve("polyconfig.kdl");
-		if (!Files.exists(path)) {
-
-		}
-		return new FileInputStream(path.toFile());
 	}
 
 	private static ConfigFormatException multipleVersionDeclarations(int found) {

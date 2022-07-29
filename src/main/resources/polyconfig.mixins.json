@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "nl.theepicblock.polyconfig.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "OnBuildPolyMap"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

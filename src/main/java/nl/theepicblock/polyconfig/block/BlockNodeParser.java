@@ -1,4 +1,4 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.block;
 
 import dev.hbeck.kdl.objects.KDLNode;
 import io.github.theepicblock.polymc.api.block.BlockStateMerger;
@@ -7,67 +7,33 @@ import net.minecraft.block.BlockState;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import nl.theepicblock.polyconfig.Utils;
 
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class BlockNodeParser {
     /**
      * Interprets a block node
      * @param resultMap the map in which the result will be added.
      */
-    static void parseBlockNode(KDLNode node, Map<Identifier, BlockEntry> resultMap) throws ConfigFormatException {
-        var args = node.getArgs();
-        if (args.size() != 1) throw wrongAmountOfArgsForBlockNode(args.size());
-        if (!node.getProps().isEmpty()) throw new ConfigFormatException("Block nodes should not have any properties").withHelp("try removing any x=.. attached to the block node");
-
-        var moddedIdString = args.get(0).getAsString().getValue();
-        // Try to parse it as a regular id, otherwise consider it a regex
-        var possibleId = Identifier.tryParse(moddedIdString);
-        if (possibleId == null) {
-            var predicate = Pattern.compile(moddedIdString).asMatchPredicate();
-            var count = 0;
-            for (var id : Registry.BLOCK.getIds()) {
-                var exceptions = new ArrayList<ConfigFormatException>();
-                if (predicate.test(id.toString())) {
-                    count++;
-                    if (!resultMap.containsKey(id)) {
-                        try {
-                            processBlock(id, Registry.BLOCK.get(id), node, resultMap, true);
-                        } catch (ConfigFormatException e) {
-                            exceptions.add(e);
-                        }
-                    }
+    public static void parseBlockNode(KDLNode node, Map<Identifier, BlockEntry> resultMap) throws ConfigFormatException {
+        Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "block", Registry.BLOCK, (id, block, isRegex) -> {
+            if (isRegex) {
+                if (!resultMap.containsKey(id)) {
+                    processBlock(id, block, node, resultMap, false);
                 }
-
-                if (!exceptions.isEmpty()) {
-                    if (exceptions.size() == 1) {
-                        throw exceptions.get(0);
-                    } else {
-                        throw new ConfigFormatException("Warning: regex caused multiple errors with multiple blocks").withSubExceptions(exceptions);
-                    }
+            } else {
+                // Things declared as regexes can be safely overriden
+                if (resultMap.containsKey(id) && !resultMap.get(id).regex()) {
+                    throw Utils.duplicateEntry(id);
                 }
+                processBlock(id, block, node, resultMap, false);
             }
-            if (count == 0) {
-                PolyConfig.LOGGER.warn("The regex "+moddedIdString+" didn't match any blocks!");
-            }
-        } else {
-            var moddedBlock = Registry.BLOCK.getOrEmpty(possibleId).orElseThrow(() -> invalidBlock(possibleId));
-            if (resultMap.containsKey(possibleId)) {
-                if (resultMap.get(possibleId).regex()) {
-                    // Silently override
-                    processBlock(possibleId, moddedBlock, node, resultMap, false);
-                } else {
-                    // If there were two explicit declaration, just crash
-                    throw duplicateEntry(possibleId);
-                }
-            }
-        }
+        });
     }
 
-    static void processBlock(Identifier moddedId, Block moddedBlock, KDLNode node, Map<Identifier, BlockEntry> resultMap, boolean regex) throws ConfigFormatException {
-        var mergeNodes = KDLUtil.getChildren(node)
+    private static void processBlock(Identifier moddedId, Block moddedBlock, KDLNode node, Map<Identifier, BlockEntry> resultMap, boolean regex) throws ConfigFormatException {
+        var mergeNodes = Utils.getChildren(node)
                 .stream()
                 .filter(n -> n.getIdentifier().equals("merge"))
                 .toList();
@@ -86,7 +52,7 @@ public class BlockNodeParser {
         resultMap.put(moddedId, new BlockEntry(moddedBlock, merger, rootNode, regex));
     }
 
-    record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode, boolean regex) {}
+    public record BlockEntry(Block moddedBlock, BlockStateMerger merger, BlockStateSubgroup rootNode, boolean regex) {}
 
     private static BlockStateMerger getMergerFromNode(KDLNode mergeNode, Block block) throws ConfigFormatException {
         // A blockstate merger will merge the input blockstate to a canonical version.
@@ -136,12 +102,6 @@ public class BlockNodeParser {
                 .orElseThrow(IllegalStateException::new);
     }
 
-    private static ConfigFormatException wrongAmountOfArgsForBlockNode(int v) {
-        return new ConfigFormatException("Expected 1 argument, found "+v)
-                .withHelp("`block` nodes are supposed to only have a single argument, namely the identifier of the modded block.")
-                .withHelp("There shouldn't be anything else between `block` and the { or the end of the line");
-    }
-
     private static ConfigFormatException wrongAmountOfArgsForMergeNode(int v) {
         return new ConfigFormatException("Expected 1 or zero arguments, found "+v)
                 .withHelp("`merge` nodes can specify a single freestanding value which is the canonical value for the merge.")
@@ -156,14 +116,5 @@ public class BlockNodeParser {
 
     static ConfigFormatException invalidId(String id) {
         return new ConfigFormatException("Invalid identifier "+id);
-    }
-
-    static ConfigFormatException invalidBlock(Identifier id) {
-        return new ConfigFormatException("Couldn't find any block matching "+id)
-                .withHelp("Try checking the spelling");
-    }
-
-    private static ConfigFormatException duplicateEntry(Identifier id) {
-        return new ConfigFormatException(id+" was already registered");
     }
 }

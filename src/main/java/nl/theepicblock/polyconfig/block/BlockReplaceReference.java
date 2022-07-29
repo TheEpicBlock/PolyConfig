@@ -1,4 +1,4 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.block;
 
 import io.github.theepicblock.polymc.api.block.BlockStateManager;
 import io.github.theepicblock.polymc.impl.misc.BooleanContainer;

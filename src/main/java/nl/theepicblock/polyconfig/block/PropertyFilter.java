@@ -1,4 +1,4 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.block;
 
 import dev.hbeck.kdl.objects.*;
 import net.minecraft.block.Block;

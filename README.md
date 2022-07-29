@@ -59,7 +59,18 @@ block "test:my_slab" {
     }
 }
 
-// You can also configure items, if you need to
+// You can also configure entities
+entity "test:my_test_entity" {
+    base "minecraft:zombie"
+    name "yeet"
+}
+
+entity "test:my_test_entity_2" {
+    base "minecraft:zombie"
+    name null
+}
+
+// And you can also configure items, if you need to
 item "test:magic_sword" {
     replacement "minecraft:diamond_sword" 
     enchanted true 

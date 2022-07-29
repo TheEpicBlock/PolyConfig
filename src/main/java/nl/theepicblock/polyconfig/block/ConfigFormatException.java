@@ -1,4 +1,4 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.block;
 
 import java.util.ArrayList;
 import java.util.List;
