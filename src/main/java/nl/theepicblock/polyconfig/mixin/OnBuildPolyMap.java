@@ -30,7 +30,7 @@ public class OnBuildPolyMap {
                         block,
                         (state, registry) -> {
                             var oldClientState = customPoly.getClientBlock(state);
-                            if (customPoly.toBeRechecked.containsKey(state)) {
+                            if (customPoly.toBeRechecked.containsKey(state) && this.blockPolys.containsKey(oldClientState.getBlock())) {
                                 // Recheck the client state
                                 return this.blockPolys.get(oldClientState.getBlock()).getClientBlock(state);
                             } else {
