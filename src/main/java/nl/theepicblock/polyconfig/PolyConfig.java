@@ -59,6 +59,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 		try {
 			if (Files.exists(polyconfigdir)) {
 				Files.walk(polyconfigdir, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS).forEachOrdered(path -> {
+					if (Files.isDirectory(path)) return;
 					handleFile(path.toFile(), parser, declarations);
 				});
 			}
