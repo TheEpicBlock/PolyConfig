@@ -28,8 +28,9 @@ public class OnBuildPolyMap {
             if (poly instanceof CustomBlockPoly customPoly) {
                 newBlockPolys.put(block, new FunctionBlockStatePoly(
                         block,
-                        (state, registry) -> {
+                        (state, isUniqueCallback) -> {
                             var oldClientState = customPoly.getClientBlock(state);
+                            isUniqueCallback.set(!customPoly.toBeRechecked.containsKey(state));
                             if (customPoly.toBeRechecked.containsKey(state) && this.blockPolys.containsKey(oldClientState.getBlock())) {
                                 // Recheck the client state
                                 return this.blockPolys.get(oldClientState.getBlock()).getClientBlock(state);
