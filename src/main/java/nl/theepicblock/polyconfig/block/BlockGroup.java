@@ -1,8 +1,9 @@
 package nl.theepicblock.polyconfig.block;
 
 import io.github.theepicblock.polymc.api.block.BlockStateProfile;
+import nl.theepicblock.polyconfig.util.ElementGroup;
 
-public enum BlockGroup {
+public enum BlockGroup implements ElementGroup {
     SAPLINGS(BlockStateProfile.SAPLING_SUB_PROFILE, "saplings"),
     SUGARCANE(BlockStateProfile.SUGARCANE_SUB_PROFILE, "sugarcane"),
     TRIPWIRE(BlockStateProfile.TRIPWIRE_SUB_PROFILE, "tripwire"),
@@ -38,5 +39,10 @@ public enum BlockGroup {
     BlockGroup(BlockStateProfile profile, String name) {
         this.name = name;
         this.profile = profile;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

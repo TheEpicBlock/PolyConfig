@@ -11,6 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.text.Text;
+import nl.theepicblock.polyconfig.util.Utils;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,7 @@ public class CustomEntityWizard<T extends Entity> extends EntityWizard<T> {
     public void addPlayer(PacketConsumer player) {
         virtualEntity.spawn(player, this.getPosition());
 
-        if (this.name != EntityNodeParser.EMPTY_TEXT) {
+        if (this.name != Utils.EMPTY_TEXT) {
             player.sendPacket(EntityUtil.createDataTrackerUpdate(
                     this.virtualEntity.getId(),
                     List.of(
