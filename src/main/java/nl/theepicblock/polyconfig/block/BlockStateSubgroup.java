@@ -2,6 +2,7 @@ package nl.theepicblock.polyconfig.block;
 
 import dev.hbeck.kdl.objects.KDLNode;
 import io.github.theepicblock.polymc.api.block.BlockStateManager;
+import io.github.theepicblock.polymc.api.block.BlockStateProfile;
 import io.github.theepicblock.polymc.impl.generator.BlockPolyGenerator;
 import io.github.theepicblock.polymc.impl.misc.BooleanContainer;
 import net.minecraft.block.Block;
@@ -102,12 +103,10 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
             // TODO support property filters on these
             if (!node.getProps().isEmpty()) throw new ConfigFormatException("Filtering block groups is not yet supported");
             return new BlockReplaceReference.BlockGroupReference(
-                    Arrays.stream(BlockGroup.values())
-                            .filter(group -> group.name.equals(replacementArgAsString))
-                            .findFirst()
+                    BlockGroupUtil.tryGet(replacementArgAsString)
                             .orElseThrow(() ->
                                     new ConfigFormatException(replacementArgAsString+" is not a valid group.")
-                                            .withHelp("valid groups are: "+ Arrays.stream(BlockGroup.values()).map(group -> group.name).collect(Collectors.joining(", ", "[","]")))));
+                                            .withHelp("valid groups are: "+ BlockStateProfile.ALL_PROFILES.stream().map(group -> group.name).collect(Collectors.joining(", ", "[","]")))));
         } else {
             throw new ConfigFormatException(replacementArgType+" is an invalid type for a replace node's argument. Should be either `state` or `group`");
         }

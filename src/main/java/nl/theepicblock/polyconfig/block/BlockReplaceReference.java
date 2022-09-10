@@ -1,6 +1,7 @@
 package nl.theepicblock.polyconfig.block;
 
 import io.github.theepicblock.polymc.api.block.BlockStateManager;
+import io.github.theepicblock.polymc.api.block.BlockStateProfile;
 import io.github.theepicblock.polymc.impl.misc.BooleanContainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -16,12 +17,12 @@ import java.util.List;
 public interface BlockReplaceReference {
     @Nullable BlockState tryAllocate(BlockState input, BooleanContainer isUniqueCallback, BlockStateManager stateManager);
 
-    record BlockGroupReference(BlockGroup group) implements BlockReplaceReference {
+    record BlockGroupReference(BlockStateProfile group) implements BlockReplaceReference {
         @Override
         public @Nullable BlockState tryAllocate(BlockState input, BooleanContainer isUniqueCallback, BlockStateManager stateManager) {
             try {
                 isUniqueCallback.set(true);
-                return stateManager.requestBlockState(this.group.profile);
+                return stateManager.requestBlockState(this.group);
             } catch (BlockStateManager.StateLimitReachedException e) {
                 isUniqueCallback.set(false);
                 return null;
