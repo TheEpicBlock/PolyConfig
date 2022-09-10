@@ -113,8 +113,4 @@ public class BlockNodeParser {
                 .withHelp("`merge` nodes should have a single key-value pair to specify which property and which range of values for that property should be merged.")
                 .withHelp("Try looking at the examples in the README");
     }
-
-    static ConfigFormatException invalidId(String id) {
-        return new ConfigFormatException("Invalid identifier "+id);
-    }
 }

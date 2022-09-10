@@ -97,4 +97,8 @@ public class Utils {
         return new ConfigFormatException("Couldn't find any "+type+" matching "+id)
                 .withHelp("Try checking the spelling");
     }
+
+    public static ConfigFormatException invalidId(String id) {
+        return new ConfigFormatException("Invalid identifier "+id);
+    }
 }

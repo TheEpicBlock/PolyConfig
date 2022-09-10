@@ -40,10 +40,10 @@ public class EntityNodeParser {
         }
         var baseEntityStr = Utils.getSingleArgNoProps(baseNodes.get(0)).getAsString().getValue();
         var baseEntityId = Identifier.tryParse(baseEntityStr);
-        if (baseEntityId == null) {
-            throw new ConfigFormatException("Couldn't find any entity matching "+baseEntityStr)
-                    .withHelp("Try checking the spelling");
-        }
+        if (baseEntityId == null) throw Utils.invalidId(baseEntityStr);
+        var baseEntity = Registry.ENTITY_TYPE.getOrEmpty(baseEntityId)
+                .orElseThrow(() -> new ConfigFormatException("Couldn't find any entity matching "+baseEntityStr)
+                        .withHelp("Try checking the spelling"));
 
         var nameNodes = Utils.getChildren(node).stream().filter(n -> n.getIdentifier().equals("base")).toList();
         if (nameNodes.size() > 1) {
@@ -76,8 +76,8 @@ public class EntityNodeParser {
         } else {
             name = null;
         }
-        resultMap.put(moddedId, new EntityEntry(moddedEntity, name, regex));
+        resultMap.put(moddedId, new EntityEntry(baseEntity, name, regex));
     }
 
-    public record EntityEntry(EntityType<?> base, Text name, boolean regex) {}
+    public record EntityEntry(EntityType<?> vanillaReplacement, Text name, boolean regex) {}
 }

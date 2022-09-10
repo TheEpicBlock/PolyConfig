@@ -15,7 +15,6 @@ import nl.theepicblock.polyconfig.PolyConfig;
 import nl.theepicblock.polyconfig.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -85,7 +84,7 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
 
         if (replacementArgType.equals("state")) {
             var id = Identifier.tryParse(replacementArgAsString);
-            if (id == null) throw BlockNodeParser.invalidId(replacementArgAsString);
+            if (id == null) throw Utils.invalidId(replacementArgAsString);
             var block = Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> Utils.notFoundInRegistry(id, "block"));
             var forcedValues = new ArrayList<Property.Value<?>>();
 
