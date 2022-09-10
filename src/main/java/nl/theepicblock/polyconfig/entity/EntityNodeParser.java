@@ -76,8 +76,8 @@ public class EntityNodeParser {
         } else {
             name = null;
         }
-        resultMap.put(moddedId, new EntityEntry(baseEntity, name, regex));
+        resultMap.put(moddedId, new EntityEntry(moddedEntity, baseEntity, name, regex));
     }
 
-    public record EntityEntry(EntityType<?> vanillaReplacement, Text name, boolean regex) {}
+    public record EntityEntry(EntityType<?> moddedEntity, EntityType<?> vanillaReplacement, Text name, boolean regex) {}
 }

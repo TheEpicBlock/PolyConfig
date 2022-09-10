@@ -79,7 +79,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 
 		// Apply entity nodes
 		declarations.entityDeclarations().forEach((identifier, entityEntry) -> {
-			registry.registerEntityPoly(entityEntry.vanillaReplacement(), (info, entity) -> new CustomEntityWizard<>(info, entity, entityEntry.vanillaReplacement(), entityEntry.name()));
+			registry.registerEntityPoly(entityEntry.moddedEntity(), (info, entity) -> new CustomEntityWizard<>(info, entity, entityEntry.vanillaReplacement(), entityEntry.name()));
 		});
 	}
 
