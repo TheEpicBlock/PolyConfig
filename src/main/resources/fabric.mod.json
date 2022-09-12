@@ -32,6 +32,6 @@
   "depends": {
     "fabricloader": ">=0.14.6",
     "java": ">=17",
-    "polymc": ">=5.2.0"
+    "polymc": ">=5.2.3"
   }
 }
