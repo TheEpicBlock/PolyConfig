@@ -11,12 +11,12 @@ import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.PolyConfig;
-import nl.theepicblock.polyconfig.util.ElementGroup;
 import nl.theepicblock.polyconfig.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSubgroup> children, List<BlockReplaceReference> replaces) {
     /**
@@ -99,7 +99,11 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
         } else if (replacementType.equals("group")) {
             // TODO support property filters on these
             if (!node.getProps().isEmpty()) throw new ConfigFormatException("Filtering block groups is not yet supported");
-            return new BlockReplaceReference.BlockGroupReference(ElementGroup.getGroupByName(replacementString, BlockGroup.class, "block"));
+            return new BlockReplaceReference.BlockGroupReference(
+                    BlockGroupUtil.tryGet(replacementString)
+                            .orElseThrow(() ->
+                                    new ConfigFormatException(replacementString+" is not a valid group.")
+                                            .withHelp("valid groups are: "+ BlockStateProfile.ALL_PROFILES.stream().map(group -> group.name).collect(Collectors.joining(", ", "[","]")))));
         } else {
             throw new ConfigFormatException(replacementType+" is an invalid type for a replace node's argument. Should be either `state` or `group`");
         }
