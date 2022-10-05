@@ -61,8 +61,8 @@ public class EntityNodeParser {
                     isJson = false;
                 } else {
                     isJson = switch (nameArg.getType().get()) {
-                        case "json" -> false;
-                        case "literal" -> true;
+                        case "json" -> true;
+                        case "literal" -> false;
                         default -> throw new ConfigFormatException("Invalid type "+nameArg.getType().get());
                     };
                 }
