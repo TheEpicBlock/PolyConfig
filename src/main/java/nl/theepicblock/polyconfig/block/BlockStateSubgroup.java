@@ -9,10 +9,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Property;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.PolyConfig;
-import nl.theepicblock.polyconfig.Utils;
+import nl.theepicblock.polyconfig.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,12 +78,11 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
         var args = node.getArgs();
         if (args.size() != 1) throw wrongAmountOfArgsForReplaceNode(args.size());
         var replacementArg = args.get(0);
-        var replacementArgAsString = replacementArg.getAsString().getValue();
-        var replacementArgType = replacementArg.getType().orElse("state");
+        var replacementString = replacementArg.getAsString().getValue();
+        var replacementType = replacementArg.getType().orElse("state");
 
-        if (replacementArgType.equals("state")) {
-            var id = Identifier.tryParse(replacementArgAsString);
-            if (id == null) throw Utils.invalidId(replacementArgAsString);
+        if (replacementType.equals("state")) {
+            var id = Utils.parseIdentifier(replacementString);
             var block = Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> Utils.notFoundInRegistry(id, "block"));
             var forcedValues = new ArrayList<Property.Value<?>>();
 
@@ -98,16 +96,16 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
             }
 
             return new BlockReplaceReference.BlockReference(block, forcedValues);
-        } else if (replacementArgType.equals("group")) {
+        } else if (replacementType.equals("group")) {
             // TODO support property filters on these
             if (!node.getProps().isEmpty()) throw new ConfigFormatException("Filtering block groups is not yet supported");
             return new BlockReplaceReference.BlockGroupReference(
-                    BlockGroupUtil.tryGet(replacementArgAsString)
+                    BlockGroupUtil.tryGet(replacementString)
                             .orElseThrow(() ->
-                                    new ConfigFormatException(replacementArgAsString+" is not a valid group.")
+                                    new ConfigFormatException(replacementString+" is not a valid group.")
                                             .withHelp("valid groups are: "+ BlockStateProfile.ALL_PROFILES.stream().map(group -> group.name).collect(Collectors.joining(", ", "[","]")))));
         } else {
-            throw new ConfigFormatException(replacementArgType+" is an invalid type for a replace node's argument. Should be either `state` or `group`");
+            throw new ConfigFormatException(replacementType+" is an invalid type for a replace node's argument. Should be either `state` or `group`");
         }
     }
 

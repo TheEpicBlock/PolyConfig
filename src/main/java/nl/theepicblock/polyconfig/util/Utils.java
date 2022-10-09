@@ -1,11 +1,16 @@
-package nl.theepicblock.polyconfig;
+package nl.theepicblock.polyconfig.util;
 
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.objects.KDLValue;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import nl.theepicblock.polyconfig.PolyConfig;
 import nl.theepicblock.polyconfig.block.ConfigFormatException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +18,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class Utils {
+    public static final Text EMPTY_TEXT = Text.empty();
+
     public static List<KDLNode> getChildren(KDLNode node) {
         var childDoc = node.getChild();
         if (childDoc.isPresent()) {
@@ -75,12 +82,77 @@ public class Utils {
         void accept(Identifier id, T v, boolean isRegex) throws ConfigFormatException;
     }
 
+    public static KDLNode getSingleNode(List<KDLNode> nodes, String name) throws ConfigFormatException {
+        KDLNode result = null;
+        for (KDLNode node : nodes) {
+            if (node.getIdentifier().equals(name)) {
+                if (result != null) {
+                    throw new ConfigFormatException("Duplicate node "+name+", only one is allowed");
+                }
+                result = node;
+            }
+        }
+        if (result == null) {
+            throw new ConfigFormatException("Expected node "+name);
+        }
+        return result;
+    }
+
+    public static KDLNode getOptionalNode(List<KDLNode> nodes, String name) throws ConfigFormatException {
+        KDLNode result = null;
+        for (KDLNode node : nodes) {
+            if (node.getIdentifier().equals(name)) {
+                if (result != null) {
+                    throw new ConfigFormatException("Duplicate node "+name+", zero or one is allowed");
+                }
+                result = node;
+            }
+        }
+        return result;
+    }
+
     public static KDLValue<?> getSingleArgNoProps(KDLNode node) throws ConfigFormatException {
         if (node.getArgs().size() != 1) {
             throw wrongAmountOfArgsForNode(node.getArgs().size(), node.getIdentifier());
         }
         if (!node.getProps().isEmpty()) throw new ConfigFormatException(node.getIdentifier()+" nodes should not have any properties").withHelp("try removing any x=.. attached to the node");
         return node.getArgs().get(0);
+    }
+
+    public static Text getText(KDLValue<?> value) throws ConfigFormatException {
+        return getText(value, null);
+    }
+
+    public static Text getText(KDLValue<?> value, @Nullable Style defaultStyle) throws ConfigFormatException {
+        if (value.isNull()) {
+            return EMPTY_TEXT;
+        } else {
+            boolean isJson;
+            if (value.getType().isEmpty()) {
+                isJson = false;
+            } else {
+                isJson = switch (value.getType().get()) {
+                    case "json" -> true;
+                    case "literal" -> false;
+                    default -> throw new ConfigFormatException("Invalid type "+value.getType().get());
+                };
+            }
+
+            if (isJson) {
+                return Text.Serializer.fromLenientJson(value.getAsString().getValue());
+            } else {
+                return Text.literal(value.getAsString().getValue()).setStyle(defaultStyle);
+            }
+        }
+    }
+
+    public static @NotNull Identifier parseIdentifier(String s) throws ConfigFormatException {
+        try {
+            return new Identifier(s);
+        } catch (IllegalArgumentException e) {
+            throw new ConfigFormatException("Illegal identifier "+s)
+                    .withHelp("Try checking the spelling: "+e.getMessage());
+        }
     }
 
     public static ConfigFormatException wrongAmountOfArgsForNode(int v, String nodeName) {
