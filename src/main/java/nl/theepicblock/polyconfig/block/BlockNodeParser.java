@@ -4,9 +4,9 @@ import dev.hbeck.kdl.objects.KDLNode;
 import io.github.theepicblock.polymc.api.block.BlockStateMerger;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.Utils;
 
 import java.util.Map;
@@ -17,7 +17,7 @@ public class BlockNodeParser {
      * @param resultMap the map in which the result will be added.
      */
     public static void parseBlockNode(KDLNode node, Map<Identifier, BlockEntry> resultMap) throws ConfigFormatException {
-        Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "block", Registry.BLOCK, (id, block, isRegex) -> {
+        Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "block", Registries.BLOCK, (id, block, isRegex) -> {
             if (isRegex) {
                 if (!resultMap.containsKey(id)) {
                     processBlock(id, block, node, resultMap, false);

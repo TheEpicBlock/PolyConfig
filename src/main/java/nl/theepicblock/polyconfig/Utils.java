@@ -3,8 +3,8 @@ package nl.theepicblock.polyconfig;
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.objects.KDLValue;
+import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.block.ConfigFormatException;
 
 import java.util.ArrayList;

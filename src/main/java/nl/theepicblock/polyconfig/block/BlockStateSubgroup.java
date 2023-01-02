@@ -8,9 +8,9 @@ import io.github.theepicblock.polymc.impl.misc.BooleanContainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.PolyConfig;
 import nl.theepicblock.polyconfig.Utils;
 
@@ -85,7 +85,7 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
         if (replacementArgType.equals("state")) {
             var id = Identifier.tryParse(replacementArgAsString);
             if (id == null) throw Utils.invalidId(replacementArgAsString);
-            var block = Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> Utils.notFoundInRegistry(id, "block"));
+            var block = Registries.BLOCK.getOrEmpty(id).orElseThrow(() -> Utils.notFoundInRegistry(id, "block"));
             var forcedValues = new ArrayList<Property.Value<?>>();
 
             for (var entry : node.getProps().entrySet()) {

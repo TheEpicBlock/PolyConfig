@@ -2,9 +2,9 @@ package nl.theepicblock.polyconfig.entity;
 
 import dev.hbeck.kdl.objects.KDLNode;
 import net.minecraft.entity.EntityType;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import nl.theepicblock.polyconfig.Utils;
 import nl.theepicblock.polyconfig.block.ConfigFormatException;
 
@@ -18,7 +18,7 @@ public class EntityNodeParser {
      * @param resultMap the map in which the result will be added.
      */
     public static void parseEntityNode(KDLNode node, Map<Identifier, EntityEntry> resultMap) throws ConfigFormatException {
-        Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "entity", Registry.ENTITY_TYPE, (id, entity, isRegex) -> {
+        Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "entity", Registries.ENTITY_TYPE, (id, entity, isRegex) -> {
             if (isRegex) {
                 if (!resultMap.containsKey(id)) {
                     processEntity(id, entity, node, resultMap, false);
@@ -41,7 +41,7 @@ public class EntityNodeParser {
         var baseEntityStr = Utils.getSingleArgNoProps(baseNodes.get(0)).getAsString().getValue();
         var baseEntityId = Identifier.tryParse(baseEntityStr);
         if (baseEntityId == null) throw Utils.invalidId(baseEntityStr);
-        var baseEntity = Registry.ENTITY_TYPE.getOrEmpty(baseEntityId)
+        var baseEntity = Registries.ENTITY_TYPE.getOrEmpty(baseEntityId)
                 .orElseThrow(() -> new ConfigFormatException("Couldn't find any entity matching "+baseEntityStr)
                         .withHelp("Try checking the spelling"));
 
