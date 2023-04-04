@@ -45,7 +45,7 @@ public class EntityNodeParser {
                 .orElseThrow(() -> new ConfigFormatException("Couldn't find any entity matching "+baseEntityStr)
                         .withHelp("Try checking the spelling"));
 
-        var nameNodes = Utils.getChildren(node).stream().filter(n -> n.getIdentifier().equals("base")).toList();
+        var nameNodes = Utils.getChildren(node).stream().filter(n -> n.getIdentifier().equals("name")).toList();
         if (nameNodes.size() > 1) {
             throw new ConfigFormatException("Expected 0 or 1 name node, found "+nameNodes.size());
         }
