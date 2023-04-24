@@ -4,6 +4,7 @@ import io.github.theepicblock.polymc.api.wizard.PacketConsumer;
 import io.github.theepicblock.polymc.api.wizard.VirtualEntity;
 import io.github.theepicblock.polymc.api.wizard.WizardInfo;
 import io.github.theepicblock.polymc.impl.poly.entity.EntityWizard;
+import io.github.theepicblock.polymc.impl.poly.entity.DefaultedEntityPoly.DefaultedEntityWizard;
 import io.github.theepicblock.polymc.impl.poly.wizard.AbstractVirtualEntity;
 import io.github.theepicblock.polymc.impl.poly.wizard.EntityUtil;
 import io.github.theepicblock.polymc.mixins.wizards.EntityAccessor;
@@ -43,6 +44,8 @@ public class CustomEntityWizard<T extends Entity> extends EntityWizard<T> {
                     )
             );
         }
+
+        DefaultedEntityWizard.sendStandardPackets(player, this.getEntity());
     }
 
     @Override
