@@ -24,16 +24,16 @@ public class OnBuildPolyMap {
     public void recheckPolys(CallbackInfoReturnable<PolyMap> cir) {
         var newBlockPolys = new HashMap<Block, BlockPoly>();
 
-        this.blockPolys.forEach((block, poly) -> {
+        this.blockPolys.forEach((moddedBlock, poly) -> {
             if (poly instanceof CustomBlockPoly customPoly) {
-                newBlockPolys.put(block, new FunctionBlockStatePoly(
-                        block,
-                        (state, isUniqueCallback) -> {
-                            var oldClientState = customPoly.getClientBlock(state);
-                            isUniqueCallback.set(!customPoly.toBeRechecked.containsKey(state));
-                            if (customPoly.toBeRechecked.containsKey(state) && this.blockPolys.containsKey(oldClientState.getBlock())) {
+                newBlockPolys.put(moddedBlock, new FunctionBlockStatePoly(
+                        moddedBlock,
+                        (moddedState, isUniqueCallback) -> {
+                            var oldClientState = customPoly.getClientBlock(moddedState);
+                            isUniqueCallback.set(!customPoly.toBeRechecked.containsKey(moddedState));
+                            if (customPoly.toBeRechecked.containsKey(moddedState) && this.blockPolys.containsKey(oldClientState.getBlock())) {
                                 // Recheck the client state
-                                return this.blockPolys.get(oldClientState.getBlock()).getClientBlock(state);
+                                return this.blockPolys.get(oldClientState.getBlock()).getClientBlock(oldClientState);
                             } else {
                                 return oldClientState;
                             }
