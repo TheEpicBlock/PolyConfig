@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class PolyConfig implements PolyMcEntrypoint {
@@ -36,7 +37,7 @@ public class PolyConfig implements PolyMcEntrypoint {
 	@Override
 	public void registerPolys(PolyRegistry registry) {
 		var parser = new KDLParser();
-		var declarations = new Declarations(new HashMap<>(), new HashMap<>());
+		var declarations = new Declarations(new LinkedHashMap<>(), new LinkedHashMap<>());
 		var configdir = FabricLoader.getInstance().getConfigDir();
 
 		var oldLocation = configdir.resolve("polyconfig.kdl").toFile();
