@@ -21,7 +21,7 @@ public class EntityNodeParser {
         Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "entity", Registries.ENTITY_TYPE, (id, entity, isRegex) -> {
             if (isRegex) {
                 if (!resultMap.containsKey(id)) {
-                    processEntity(id, entity, node, resultMap, false);
+                    processEntity(id, entity, node, resultMap, true);
                 }
             } else {
                 // Things declared as regexes can be safely overriden

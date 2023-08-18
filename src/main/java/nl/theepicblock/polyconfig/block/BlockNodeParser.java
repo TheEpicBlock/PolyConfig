@@ -20,7 +20,7 @@ public class BlockNodeParser {
         Utils.getFromRegistry(Utils.getSingleArgNoProps(node).getAsString(), "block", Registries.BLOCK, (id, block, isRegex) -> {
             if (isRegex) {
                 if (!resultMap.containsKey(id)) {
-                    processBlock(id, block, node, resultMap, false);
+                    processBlock(id, block, node, resultMap, true);
                 }
             } else {
                 // Things declared as regexes can be safely overriden
