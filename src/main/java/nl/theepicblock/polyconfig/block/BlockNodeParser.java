@@ -69,7 +69,7 @@ public class BlockNodeParser {
 
         // Parse the canonical value
         if (mergeNode.getArgs().size() > 1) throw wrongAmountOfArgsForMergeNode(mergeNode.getArgs().size());
-        Object canonicalValue;
+        Comparable<?> canonicalValue;
         if (mergeNode.getArgs().size() == 0) {
             try {
                 canonicalValue = findCanonicalValue(propertyWithFilter);
@@ -77,7 +77,7 @@ public class BlockNodeParser {
                 throw new ConfigFormatException("Couldn't find any properties of "+propertyName+" matching "+valueRange);
             }
         } else {
-            canonicalValue = propertyWithFilter.property().parse(mergeNode.getArgs().get(0).getAsString().getValue());
+            canonicalValue = propertyWithFilter.property().parse(mergeNode.getArgs().get(0).getAsString().getValue()).orElseThrow();
         }
 
         return state -> {
