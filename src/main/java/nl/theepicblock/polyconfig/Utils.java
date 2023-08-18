@@ -4,6 +4,7 @@ import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.objects.KDLValue;
 import net.minecraft.registry.Registry;
+import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import nl.theepicblock.polyconfig.block.ConfigFormatException;
 
@@ -73,6 +74,10 @@ public class Utils {
     @FunctionalInterface
     public interface GetFromRegistryConsumer<T> {
         void accept(Identifier id, T v, boolean isRegex) throws ConfigFormatException;
+    }
+
+    public static <T extends Comparable<T>> String name(Property<T> property, T v) {
+        return property.name(v);
     }
 
     public static KDLValue<?> getSingleArgNoProps(KDLNode node) throws ConfigFormatException {

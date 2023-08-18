@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Property;
+import nl.theepicblock.polyconfig.Utils;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -16,11 +17,15 @@ public interface PropertyFilter<T extends Comparable<T>> extends Predicate<T> {
         var property = moddedBlock.getStateManager().getProperty(propertyName);
         if (property == null) throw propertyNotFound(propertyName, moddedBlock);
 
+        return get(property, valueRange, moddedBlock);
+    }
+
+    static <T extends Comparable<T>> PropertyWithFilter<T> get(Property<T> property, KDLValue<?> valueRange, Block moddedBlock) throws ConfigFormatException {
         if (valueRange instanceof KDLNull) {
             throw new ConfigFormatException("null is not a valid range of properties");
         } else if (valueRange instanceof KDLBoolean bValueRange) {
             if (property instanceof BooleanProperty booleanProperty) {
-                return new PropertyWithFilter<>(booleanProperty, v -> v == bValueRange.getValue());
+                return (PropertyWithFilter<T>)new PropertyWithFilter<>(booleanProperty, v -> v == bValueRange.getValue());
             } else {
                 // Try it again but using "true" or "false" as if it were a string
                 valueRange = KDLString.from(String.valueOf(valueRange.getValue()));
@@ -29,7 +34,7 @@ public interface PropertyFilter<T extends Comparable<T>> extends Predicate<T> {
             if (property instanceof IntProperty intProperty) {
                 var valueInt = nValueRange.getValue().intValue();
                 if (intProperty.getValues().contains(valueInt)) {
-                    return new PropertyWithFilter<>(intProperty, v -> v == valueInt);
+                    return (PropertyWithFilter<T>)new PropertyWithFilter<>(intProperty, v -> v == valueInt);
                 } else {
                     // Try it again but using the number as a string
                     valueRange = KDLString.from(String.valueOf(valueRange.getValue()));
@@ -50,13 +55,13 @@ public interface PropertyFilter<T extends Comparable<T>> extends Predicate<T> {
                 if (rightInt < leftInt) throw new ConfigFormatException("Right value is bigger than left value in range "+string);
 
                 if (property instanceof IntProperty intProperty) {
-                    return new PropertyWithFilter<>(intProperty, v -> v >= leftInt && v <= rightInt);
+                    return (PropertyWithFilter<T>)new PropertyWithFilter<>(intProperty, v -> v >= leftInt && v <= rightInt);
                 }
             } else if (string.equals("*")) {
                 return new PropertyWithFilter<>(property, block -> true);
             } else {
                 var regex = Pattern.compile(string).asMatchPredicate();
-                return new PropertyWithFilter<>(property, v -> regex.test(v.toString()));
+                return new PropertyWithFilter<>(property, v -> regex.test(Utils.name(property, v)));
             }
         }
         throw new IllegalStateException("This should not happen");
