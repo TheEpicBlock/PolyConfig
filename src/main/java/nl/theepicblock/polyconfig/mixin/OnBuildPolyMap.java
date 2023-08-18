@@ -30,8 +30,8 @@ public class OnBuildPolyMap {
                         moddedBlock,
                         (moddedState, isUniqueCallback) -> {
                             var oldClientState = customPoly.getClientBlock(moddedState);
-                            isUniqueCallback.set(!customPoly.toBeRechecked.containsKey(moddedState));
-                            if (customPoly.toBeRechecked.containsKey(moddedState) && this.blockPolys.containsKey(oldClientState.getBlock())) {
+                            isUniqueCallback.set(customPoly.noRecheck.contains(oldClientState));
+                            if (!customPoly.noRecheck.contains(oldClientState) && this.blockPolys.containsKey(oldClientState.getBlock())) {
                                 // Recheck the client state
                                 return this.blockPolys.get(oldClientState.getBlock()).getClientBlock(oldClientState);
                             } else {
