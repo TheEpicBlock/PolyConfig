@@ -99,13 +99,27 @@ public record BlockStateSubgroup(Predicate<BlockState> filter, List<BlockStateSu
 
             return new BlockReplaceReference.BlockReference(block, forcedValues);
         } else if (replacementArgType.equals("group")) {
-            // TODO support property filters on these
-            if (!node.getProps().isEmpty()) throw new ConfigFormatException("Filtering block groups is not yet supported");
-            return new BlockReplaceReference.BlockGroupReference(
-                    BlockGroupUtil.tryGet(replacementArgAsString)
-                            .orElseThrow(() ->
-                                    new ConfigFormatException(replacementArgAsString+" is not a valid group.")
-                                            .withHelp("valid groups are: "+ BlockStateProfile.ALL_PROFILES.stream().map(group -> group.name).collect(Collectors.joining(", ", "[","]")))));
+            var blockgroup = BlockGroupUtil.tryGet(replacementArgAsString)
+                    .orElseThrow(() -> new ConfigFormatException(replacementArgAsString+" is not a valid group.")
+                            .withHelp("valid groups are: "+ BlockStateProfile.ALL_PROFILES.stream().map(group -> group.name).collect(Collectors.joining(", ", "[","]"))));
+            
+            for (var entry : node.getProps().entrySet()) {
+                var propertyString = entry.getKey();
+                var valueString = entry.getValue().getAsString().getValue();
+                blockgroup = blockgroup.and(state -> {
+                    try {
+                        var block = state.getBlock();
+                        var property = block.getStateManager().getProperty(propertyString);
+                        if (property == null) throw PropertyFilter.propertyNotFound(propertyString, block);
+                        var value = parseAndGetValue(property, valueString);
+                        return state.get(property).equals(value.value());
+                    } catch (ConfigFormatException e) {
+                        // TODO properly report error
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+            return new BlockReplaceReference.BlockGroupReference(blockgroup);
         } else {
             throw new ConfigFormatException(replacementArgType+" is an invalid type for a replace node's argument. Should be either `state` or `group`");
         }
