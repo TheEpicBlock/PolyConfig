@@ -71,6 +71,7 @@ entity "test:my_test_entity_2" {
 }
 
 // And you can also configure items, if you need to
+// NOTE: This is not implemented yet!
 item "test:magic_sword" {
     replacement "minecraft:diamond_sword" 
     enchanted true 
